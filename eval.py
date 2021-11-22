@@ -155,7 +155,7 @@ def main():
     print("Total parameters: {}".format(num_params_encoder + num_params_decoder))
     print("===============================================")
     Model = Model.cuda()
-    Model = torch.nn.DataParallel(Model)
+    # Model = torch.nn.DataParallel(Model)
 
     if args.evaluate is True:
         ############################ data log #######################################
