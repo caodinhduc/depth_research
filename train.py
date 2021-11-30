@@ -92,6 +92,8 @@ def main_worker(gpu, ngpus_per_node, args):
     if (args.rank == 0):
         print("=> creating model")
     Model = LDRN(args)
+    print(torch.cuda.current_device())
+    Model = Model.cuda()
     ############################### Number of model parameters ##############################
     num_params_encoder = 0
     num_params_decoder = 0
@@ -129,7 +131,8 @@ def main_worker(gpu, ngpus_per_node, args):
         dec_param = Model.module.decoder.parameters()
     else:
         print('Single GPU training ... ')
-        Model = Model.cuda(2)
+        print(torch.cuda.current_device())
+        Model = Model.cuda()
         print("=> Model Initialized on GPU: {} - Single GPU training".format(args.gpu))
         enc_param = Model.encoder.parameters()
         dec_param = Model.decoder.parameters()
@@ -188,7 +191,7 @@ if __name__ == '__main__':
     else:
         if ngpus_per_node == 1:
             args.gpu = 0
-        args.gpu = 2
+        args.gpu = 4
         main_worker(args.gpu, ngpus_per_node, args)
 
 
