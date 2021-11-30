@@ -44,7 +44,7 @@ def main_worker(gpu, ngpus_per_node, args):
         os.environ["CUDA_VISIBLE_DEVICES"]= args.gpu_num
     else:
         print("==> Single GPU Training {}".format(args.gpu))
-        torch.cuda.set_device(args.gpu)
+        torch.cuda.set_device(4)
 
     assert torch.backends.cudnn.enabled, "Amp requires cudnn backend to be enabled."
         
