@@ -107,9 +107,10 @@ def main_worker(gpu, ngpus_per_node, args):
         trainable_params = sum([np.prod(p.shape) for p in Model.parameters() if p.requires_grad])
         print("Total trainable parameters: {}".format(trainable_params))
         print("===============================================")
+    print('start training ... ')
     ############################### apex distributed package wrapping ########################
     if args.distributed:
-        print('distributed training ... ')
+        print('distributed training 1 ... ')
         if args.norm == 'BN':
             Model = nn.SyncBatchNorm.convert_sync_batchnorm(Model)
             if (args.rank == 0):
@@ -127,13 +128,14 @@ def main_worker(gpu, ngpus_per_node, args):
         enc_param = Model.module.encoder.parameters()
         dec_param = Model.module.decoder.parameters()
     else:
+        print('Single GPU training ... ')
         Model = Model.cuda(args.gpu)
         print("=> Model Initialized on GPU: {} - Single GPU training".format(args.gpu))
         enc_param = Model.encoder.parameters()
         dec_param = Model.decoder.parameters()
     
     ###########################################################################################
-    print('start training ... ')
+    print('start training 2 ... ')
     ################################ pretrained model loading #################################
     if args.model_dir != '':
         #Model.load_state_dict(torch.load(args.model_dir,map_location='cuda:'+args.gpu_num))
@@ -186,7 +188,7 @@ if __name__ == '__main__':
     else:
         if ngpus_per_node == 1:
             args.gpu = 0
-        args.gpu = 4
+        args.gpu = 3
         main_worker(args.gpu, ngpus_per_node, args)
 
 
