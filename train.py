@@ -109,6 +109,7 @@ def main_worker(gpu, ngpus_per_node, args):
         print("===============================================")
     ############################### apex distributed package wrapping ########################
     if args.distributed:
+        print('distributed training ... ')
         if args.norm == 'BN':
             Model = nn.SyncBatchNorm.convert_sync_batchnorm(Model)
             if (args.rank == 0):
@@ -132,7 +133,7 @@ def main_worker(gpu, ngpus_per_node, args):
         dec_param = Model.decoder.parameters()
     
     ###########################################################################################
-
+    print('start training ... ')
     ################################ pretrained model loading #################################
     if args.model_dir != '':
         #Model.load_state_dict(torch.load(args.model_dir,map_location='cuda:'+args.gpu_num))
