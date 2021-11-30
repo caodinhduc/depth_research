@@ -206,7 +206,7 @@ def train_net(args,model, optimizer, dataset_loader,val_loader, n_epochs,logger)
             scale_inv_loss = scale_invariant_loss(valid_out, valid_gt_sparse)
             
             ###################################### gradient loss ############################################
-            grad_epoch = 0 if args.dataset == 'KITTI' else 20
+            grad_epoch = 15 if args.dataset == 'KITTI' else 20
             if args.use_dense_depth is True:
                 if epoch < grad_epoch:
                     gradient_loss = torch.tensor(0.).cuda()
