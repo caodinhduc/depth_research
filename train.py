@@ -24,6 +24,8 @@ from logger import TermLogger, AverageMeter
 from trainer import validate, train_net
 from model import LDRN
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "4"
+
 def main_worker(gpu, ngpus_per_node, args):
     args.gpu = gpu
     args.multigpu = False
