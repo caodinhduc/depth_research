@@ -96,8 +96,7 @@ def main_worker(gpu, ngpus_per_node, args):
     Model = LDRN(args)
 
     device = torch.device("cuda:4")
-    print(device)
-    Model = Model.cuda()
+    Model = Model.to(device)
 
     ############################### Number of model parameters ##############################
     num_params_encoder = 0
