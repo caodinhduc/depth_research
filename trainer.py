@@ -176,7 +176,7 @@ def train_net(args,model, optimizer, dataset_loader,val_loader, n_epochs,logger)
         torch.cuda.manual_seed_all(epoch)   # 멀티 gpu 연산 무작위 고정
         ####################################### one epoch training #############################################
         for i, (rgb_data, gt_data, gt_dense) in enumerate(dataset_loader):
-            print('processing iter: {}'.format(i))
+            print('iteration: {}'.format(i))
             # get the inputs
             inputs = rgb_data
             depths = gt_data
