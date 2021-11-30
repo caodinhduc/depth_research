@@ -47,7 +47,7 @@ parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true', he
 parser.add_argument('--lv6', action='store_true', help='use lv6 Laplacian decoder')
 
 # GPU parallel process setting
-parser.add_argument('--gpu_num', type=str, default = "4", help='force available gpu index')
+parser.add_argument('--gpu_num', type=str, default = "3,4", help='force available gpu index')
 parser.add_argument('--distributed', action='store_true')
 parser.add_argument("--local_rank", type=int)
 parser.add_argument('--gpu', type=int, default = 0)
