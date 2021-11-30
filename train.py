@@ -78,11 +78,11 @@ def main_worker(gpu, ngpus_per_node, args):
 
     train_loader = torch.utils.data.DataLoader(
         train_set, batch_size=args.batch_size, shuffle=(train_sampler is None),
-        num_workers=9, pin_memory=True, sampler=train_sampler)
+        num_workers=4, pin_memory=True, sampler=train_sampler)
 
     val_loader = torch.utils.data.DataLoader(
         test_set, batch_size=1, shuffle=(train_sampler is None),
-        num_workers=9, pin_memory=True, sampler=test_sampler)
+        num_workers=4, pin_memory=True, sampler=test_sampler)
 
     if args.epoch_size == 0:
         args.epoch_size = len(train_loader)
