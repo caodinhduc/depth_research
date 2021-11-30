@@ -129,7 +129,7 @@ def main_worker(gpu, ngpus_per_node, args):
         dec_param = Model.module.decoder.parameters()
     else:
         print('Single GPU training ... ')
-        Model = Model.cuda(4)
+        Model = Model.cuda(2)
         print("=> Model Initialized on GPU: {} - Single GPU training".format(args.gpu))
         enc_param = Model.encoder.parameters()
         dec_param = Model.decoder.parameters()
@@ -188,7 +188,7 @@ if __name__ == '__main__':
     else:
         if ngpus_per_node == 1:
             args.gpu = 0
-        args.gpu = 4
+        args.gpu = 2
         main_worker(args.gpu, ngpus_per_node, args)
 
 
