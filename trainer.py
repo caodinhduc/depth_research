@@ -168,7 +168,7 @@ def train_net(args,model, optimizer, dataset_loader,val_loader, n_epochs,logger)
     model.train()
     ################################################
     for epoch in tqdm(range(n_epochs+5)):
-        # dataset_loader.sampler.set_epoch(epoch) # only for distributed training
+        dataset_loader.sampler.set_epoch(epoch) # only for distributed training
         random.seed(epoch)
         np.random.seed(epoch)               # numpy 관련 무작위 고정
         torch.manual_seed(epoch)            # cpu 연산 무작위 고정
