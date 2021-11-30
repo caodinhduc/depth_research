@@ -43,7 +43,7 @@ def main_worker(gpu, ngpus_per_node, args):
         os.environ["CUDA_VISIBLE_DEVICES"]= args.gpu_num
     else:
         print("==> Single GPU Training {}".format(args.gpu))
-        # torch.cuda.set_device(args.gpu)
+        torch.cuda.set_device(args.gpu)
 
     assert torch.backends.cudnn.enabled, "Amp requires cudnn backend to be enabled."
         
@@ -93,8 +93,9 @@ def main_worker(gpu, ngpus_per_node, args):
     if (args.rank == 0):
         print("=> creating model")
     Model = LDRN(args)
-    device = torch.device("cuda:4")
-    Model = Model.to(device)
+    # device = torch.device("cuda:4")
+    # Model = Model.to(device)
+    Model = Model.cuda()
 
     ############################### Number of model parameters ##############################
     num_params_encoder = 0
@@ -133,7 +134,6 @@ def main_worker(gpu, ngpus_per_node, args):
         dec_param = Model.module.decoder.parameters()
     else:
         print('Single GPU training ... ')
-        print(torch.cuda.current_device())
         Model = Model.cuda()
         print("=> Model Initialized on GPU: {} - Single GPU training".format(args.gpu))
         enc_param = Model.encoder.parameters()
