@@ -193,7 +193,7 @@ if __name__ == '__main__':
     else:
         if ngpus_per_node == 1:
             args.gpu = 0
-        args.gpu = 4
+        args.gpu = 0
         main_worker(args.gpu, ngpus_per_node, args)
 
 
