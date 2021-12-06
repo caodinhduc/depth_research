@@ -66,11 +66,11 @@ parser.add_argument('--log-metric', default='_LRDN_evaluation.csv', metavar='PAT
 parser.add_argument('--val_in_train', action='store_true', help='validation process in training')
 
 # Model setting
-parser.add_argument('--encoder', type=str, default = "ResNext101")
+parser.add_argument('--encoder', type=str, default = "swin_transformer")
 parser.add_argument('--norm', type=str, default = "BN")
 parser.add_argument('--act', type=str, default = "ReLU")
-parser.add_argument('--height', type=int, default = 352)
-parser.add_argument('--width', type=int, default = 704)
+parser.add_argument('--height', type=int, default = 224)
+parser.add_argument('--width', type=int, default = 896)
 parser.add_argument('--max_depth', default=80.0, type=float, metavar='MaxVal', help='max value of depth')
 parser.add_argument('--lv6', action='store_true', help='use lv6 Laplacian decoder')
 
@@ -180,7 +180,7 @@ def main():
         for i in range(test_len):
             filename = models_list[i].split('/')[-1]
             logger.reset_valid_bar()
-            test_model.load_state_dict(torch.load(models_list[i],map_location='cuda:0'))
+            test_model.load_state_dict(torch.load(models_list[i],map_location='cuda:0'), strict=False)
             #test_model.load_state_dict(torch.load(models_list[i]))
             test_model.eval()
             if args.dataset == 'KITTI':
@@ -230,6 +230,7 @@ def main():
             img_W = gt_data.shape[3]
             gt_data = Variable(gt_data.cuda())
             input_img = Variable(rgb_data.cuda())
+            print('input_img: ', input_img.shape)
             gt_data = gt_data.clamp(0, args.max_depth)
             if args.use_dense_depth is True:
                 gt_dense = Variable(gt_dense.cuda())

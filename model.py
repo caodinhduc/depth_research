@@ -11,6 +11,11 @@ import torchvision.models as models
 import numpy as np
 from IPython import display
 import matplotlib as mpl
+
+from swin_transformer.config import get_config
+from swin_transformer.models import build_model
+import argparse
+
 #from option import args
 if os.environ.get('DISPLAY','') == '':
     #print('no display found. Using non-interactive Agg backend')
@@ -335,6 +340,22 @@ class deepFeatureExtractor_MobileNetV2(nn.Module):
                 module.weight.requires_grad = enable
                 module.bias.requires_grad = enable
 
+class deepFeatureExtractor_swin_transformer(nn.Module):
+    def __init__(self,args, lv6 = False):
+        super(deepFeatureExtractor_swin_transformer, self).__init__()
+        self.args = args
+        # after passing Layer1 : C x H/4  x W/4
+        # after passing Layer2 : 2C x H/8  x W/8
+        # after passing Layer3 : 4C x H/16 x W/16
+        # after passing Layer4 : 8C x H/32 x W/32
+
+        config = get_config()
+        self.encoder = build_model(config)
+        self.dimList = [128, 256, 512, 1024]
+
+    def forward(self, x):
+        return(self.encoder(x))
+
 class deepFeatureExtractor_ResNet101(nn.Module):
     def __init__(self,args, lv6 = False):
         super(deepFeatureExtractor_ResNet101, self).__init__()
@@ -590,6 +611,14 @@ class Lap_decoder_lv5(nn.Module):
         self.max_depth = args.max_depth
         self.ASPP = Dilated_bottleNeck(norm, act, dimList[3])
         self.dimList = dimList
+
+        # after passing Layer1 : C x H/4  x W/4
+        # after passing Layer2 : 2C x H/8  x W/8
+        # after passing Layer3 : 4C x H/16 x W/16
+        # after passing Layer4 : 8C x H/32 x W/32
+
+        # dimlist: 128, 256, 512, 1024
+
         ############################################     Pyramid Level 5     ###################################################
         # decoder1 out : 1 x H/16 x W/16 (Level 5)
         self.decoder1 = nn.Sequential(myConv(dimList[3]//2, dimList[3]//4, kSize, stride=1, padding=kSize//2, bias=False, 
@@ -655,7 +684,7 @@ class Lap_decoder_lv5(nn.Module):
         ############################################     Pyramid Level 1     ###################################################
         # decoder5 out : 1 x H x W (Level 1)
         # decoder2_1_1_1_up4 : (H/2,W/2)->(H,W)
-        self.decoder2_1_1_1_up4 = upConvLayer(dimList[3]//16, dimList[3]//16 - 4, 2, norm, act, (dimList[3]//16)//16)
+        self.decoder2_1_1_1_up4 = upConvLayer(dimList[3]//16, dimList[3]//16 - 4, 4, norm, act, (dimList[3]//16)//16)
         self.decoder2_1_1_1_1 = myConv(dimList[3]//16, dimList[3]//16, kSize, stride=1, padding=kSize//2, bias=False, 
                                         norm=norm, act=act, num_groups=(dimList[3]//16)//16)
         
@@ -669,38 +698,43 @@ class Lap_decoder_lv5(nn.Module):
     def forward(self, x, rgb):
         cat1, cat2, cat3, dense_feat = x[0], x[1], x[2], x[3]
         rgb_lv6, rgb_lv5, rgb_lv4, rgb_lv3, rgb_lv2, rgb_lv1 = rgb[0], rgb[1], rgb[2], rgb[3], rgb[4], rgb[5]
-        dense_feat = self.ASPP(dense_feat)                        # Dense feature for lev 5
+      
+        dense_feat = self.ASPP(dense_feat)  # 512 x 7 x 14
+        
         # decoder 1 - Pyramid level 5
-        lap_lv5 = torch.sigmoid(self.decoder1(dense_feat))
-        lap_lv5_up = self.upscale(lap_lv5, scale_factor = 2, mode='bilinear')
+        lap_lv5 = torch.sigmoid(self.decoder1(dense_feat)) # 1 x 7 x 14
+        lap_lv5_up = self.upscale(lap_lv5, scale_factor = 2, mode='bilinear') # 1 x 14 x 28
 
         # decoder 2 - Pyramid level 4
-        dec2 = self.decoder2_up1(dense_feat)
-        dec2 = self.decoder2_reduc1(torch.cat([dec2,cat3],dim=1))
-        dec2_up = self.decoder2_1(torch.cat([dec2,lap_lv5_up,rgb_lv4],dim=1))
+        dec2 = self.decoder2_up1(dense_feat) # 256 x 14 x 28
+        dec2 = self.decoder2_reduc1(torch.cat([dec2,cat3],dim=1)) # (4C + 256) x 14 x 28 -> (256 - 4) x 14 x 28
+        dec2_up = self.decoder2_1(torch.cat([dec2,lap_lv5_up,rgb_lv5],dim=1)) # 256 x 14 x 28 -> 128 x 14 x 28
         dec2 = self.decoder2_2(dec2_up)
         dec2 = self.decoder2_3(dec2)
-        lap_lv4 = torch.tanh(self.decoder2_4(dec2) + (0.1*rgb_lv4.mean(dim=1,keepdim=True)))                 
+        lap_lv4 = torch.tanh(self.decoder2_4(dec2) + (0.1*rgb_lv5.mean(dim=1,keepdim=True)))   # 1 x 14 x 28      
         # if depth range is (0,1), laplacian of image range is (-1,1)
-        lap_lv4_up = self.upscale(lap_lv4, scale_factor = 2, mode='bilinear')
+        lap_lv4_up = self.upscale(lap_lv4, scale_factor = 2, mode='bilinear')  # 1 x 28 x 56
         # decoder 2 - Pyramid level 3
-        dec3 = self.decoder2_1_up2(dec2_up)
-        dec3 = self.decoder2_1_reduc2(torch.cat([dec3,cat2],dim=1))
-        dec3_up = self.decoder2_1_1(torch.cat([dec3,lap_lv4_up,rgb_lv3],dim=1))
+        dec3 = self.decoder2_1_up2(dec2_up) # 128 x 28 x 56
+        dec3 = self.decoder2_1_reduc2(torch.cat([dec3,cat2],dim=1)) # (128 - 4) x 28 x 56
+
+        dec3_up = self.decoder2_1_1(torch.cat([dec3,lap_lv4_up,rgb_lv4],dim=1))
         dec3 = self.decoder2_1_2(dec3_up)
-        lap_lv3 = torch.tanh(self.decoder2_1_3(dec3) + (0.1*rgb_lv3.mean(dim=1,keepdim=True)))                 
+        lap_lv3 = torch.tanh(self.decoder2_1_3(dec3) + (0.1*rgb_lv4.mean(dim=1,keepdim=True)))                 
         # if depth range is (0,1), laplacian of image range is (-1,1)
         lap_lv3_up = self.upscale(lap_lv3, scale_factor = 2, mode='bilinear')
         # decoder 2 - Pyramid level 2
         dec4 = self.decoder2_1_1_up3(dec3_up)
         dec4 = self.decoder2_1_1_reduc3(torch.cat([dec4,cat1],dim=1))
-        dec4_up = self.decoder2_1_1_1(torch.cat([dec4,lap_lv3_up,rgb_lv2],dim=1))
+        dec4_up = self.decoder2_1_1_1(torch.cat([dec4,lap_lv3_up,rgb_lv3],dim=1))
 
-        lap_lv2 = torch.tanh(self.decoder2_1_1_2(dec4_up) + (0.1*rgb_lv2.mean(dim=1,keepdim=True)))                  
+        lap_lv2 = torch.tanh(self.decoder2_1_1_2(dec4_up) + (0.1*rgb_lv3.mean(dim=1,keepdim=True)))                  
         # if depth range is (0,1), laplacian of image range is (-1,1)
-        lap_lv2_up = self.upscale(lap_lv2, scale_factor = 2, mode='bilinear')
+        lap_lv2_up = self.upscale(lap_lv2, scale_factor = 4, mode='bilinear')
         # decoder 2 - Pyramid level 1
-        dec5 = self.decoder2_1_1_1_up4(dec4_up)
+
+        # need to up 4 x to match the shape
+        dec5 = self.decoder2_1_1_1_up4(dec4_up) 
         dec5 = self.decoder2_1_1_1_1(torch.cat([dec5,lap_lv2_up,rgb_lv1],dim=1))
         dec5 = self.decoder2_1_1_1_2(dec5)
         lap_lv1 = torch.tanh(self.decoder2_1_1_1_3(dec5) + (0.1*rgb_lv1.mean(dim=1,keepdim=True)))
@@ -710,7 +744,7 @@ class Lap_decoder_lv5(nn.Module):
         lap_lv4_img = lap_lv4 + lap_lv5_up
         lap_lv3_img = lap_lv3 + self.upscale(lap_lv4_img, scale_factor = 2, mode = 'bilinear')
         lap_lv2_img = lap_lv2 + self.upscale(lap_lv3_img, scale_factor = 2, mode = 'bilinear')
-        final_depth = lap_lv1 + self.upscale(lap_lv2_img, scale_factor = 2, mode = 'bilinear')
+        final_depth = lap_lv1 + self.upscale(lap_lv2_img, scale_factor = 4, mode = 'bilinear')
         final_depth = torch.sigmoid(final_depth)
         return [(lap_lv5)*self.max_depth, (lap_lv4)*self.max_depth, (lap_lv3)*self.max_depth, (lap_lv2)*self.max_depth, (lap_lv1)*self.max_depth], final_depth*self.max_depth
         # fit laplacian image range (-80,80), depth image range(0,80)
@@ -905,6 +939,8 @@ class LDRN(nn.Module):
             self.encoder = deepFeatureExtractor_ResNet101(args, lv6)
         elif 'EfficientNet' in args.encoder:
             self.encoder = deepFeatureExtractor_EfficientNet(args, encoder, lv6)
+        elif encoder=='swin_transformer':
+            self.encoder = deepFeatureExtractor_swin_transformer(args, lv6)
 
         if lv6 is True:
             self.decoder = Lap_decoder_lv6(args, self.encoder.dimList)
@@ -934,5 +970,5 @@ class LDRN(nn.Module):
 
     def train(self, mode=True):
         super().train(mode)
-        self.encoder.freeze_bn()
+        # self.encoder.freeze_bn()
 
