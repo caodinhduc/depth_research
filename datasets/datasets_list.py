@@ -45,19 +45,7 @@ class MyDataset(data.Dataset):
             self.fileset = f.readlines()
         self.fileset = sorted(self.fileset)
 
-        self.clean_fileset = []
-        # remove non-existing files
-        import os
-        for path in self.fileset:
-            divided_file = path.split()
-            date = divided_file[0].split('/')[0] + '/'
-            rgb_file = self.args.data_path + '/' + divided_file[0]
-            gt_file = self.args.data_path + '/data_depth_annotated/' + divided_file[1]
-            if os.path.exists(gt_file) and os.path.exists(gt_file):
-                self.clean_fileset.append(path)
-        
-        self.fileset = self.clean_fileset
-        print('num sample after removing: {}'.format(len(self.fileset)))
+        print('num sample: {}'.format(len(self.fileset)))
         
 
     def __getitem__(self, index):
