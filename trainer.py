@@ -182,6 +182,7 @@ def train_net(args,model, optimizer, dataset_loader,val_loader, n_epochs,logger)
             depths = gt_data
             inputs = inputs.cuda()
             depths = depths.cuda()
+
             inputs, depths = Variable(inputs), Variable(depths)
             if args.use_dense_depth is True:
                 dense_depths = gt_dense

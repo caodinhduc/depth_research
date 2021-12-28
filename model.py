@@ -724,7 +724,6 @@ class Lap_decoder_lv5(nn.Module):
         ##########################################      final conv          ####################################################
         self.final_conv = myConv(5, 1, kSize, stride=1, padding=kSize//2, bias=False, 
                                         norm=norm, act=act, num_groups=2)
-        self.activation = nn.ReLU()
 
     def forward(self, x, rgb):
         cat1, cat2, cat3, dense_feat = x[0], x[1], x[2], x[3]
@@ -793,7 +792,7 @@ class Lap_decoder_lv5(nn.Module):
         lpg_2_feature = self.lpg_2(lpg_lv2)
 
         feature = torch.cat([torch.unsqueeze(lpg_5_feature, 1), torch.unsqueeze(lpg_4_feature, 1), torch.unsqueeze(lpg_3_feature, 1), torch.unsqueeze(lpg_2_feature, 1), lpg_lv1], dim=1)
-        final_prediction =self.activation(self.final_conv(feature))
+        final_prediction = torch.sigmoid(self.final_conv(feature))
         return final_prediction * self.max_depth
         # fit laplacian image range (-80,80), depth image range(0,80)
 
