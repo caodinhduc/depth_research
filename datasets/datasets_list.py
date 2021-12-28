@@ -7,7 +7,7 @@ import torch
 import time
 import cv2
 from PIL import ImageFile
-from transform_list import RandomCropNumpy,EnhancedCompose,RandomColor,RandomHorizontalFlip,ArrayToTensorNumpy,Normalize
+from transform_list import RandomCropNumpy, Resize, EnhancedCompose,RandomColor,RandomHorizontalFlip,ArrayToTensorNumpy,Normalize
 from torchvision import transforms
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -56,6 +56,7 @@ class MyDataset(data.Dataset):
         # Opening image files.   rgb: input color image, gt: sparse depth map
         rgb_file = self.args.data_path + '/' + divided_file[0]
         rgb = Image.open(rgb_file)
+        
         gt = False
         gt_dense = False
         if (self.train is False):
@@ -92,7 +93,9 @@ class MyDataset(data.Dataset):
                 if self.use_dense_depth is True:
                     gt_dense_file = self.args.data_path + '/' + divided_file[2]
             
-            gt = Image.open(gt_file)            
+            gt = Image.open(gt_file)
+
+
             rgb = rgb.rotate(angle, resample=Image.BILINEAR)
             gt = gt.rotate(angle, resample=Image.NEAREST)
             if self.use_dense_depth is True:

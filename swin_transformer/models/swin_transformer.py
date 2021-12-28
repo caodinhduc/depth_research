@@ -6,6 +6,7 @@
 # --------------------------------------------------------
 
 import torch
+import math
 import torch.nn as nn
 import torch.utils.checkpoint as checkpoint
 from timm.models.layers import DropPath, to_2tuple, trunc_normal_
@@ -392,9 +393,8 @@ class BasicLayer(nn.Module):
             else:
                 x = blk(x)
 
+        # extract pyramid features
         pyramid_features = x
-
-        # branch to extract pyramid features
 
         if self.downsample is not None:
             x = self.downsample(x)
@@ -425,10 +425,8 @@ class PatchEmbed(nn.Module):
 
     def __init__(self, img_size=224, patch_size=4, in_chans=3, embed_dim=96, norm_layer=None):
         super().__init__()
-
-        img_size = (img_size, img_size * 4)
-        patch_size = (patch_size, patch_size)
-
+        img_size = to_2tuple(img_size)
+        patch_size = to_2tuple(patch_size)
         patches_resolution = [img_size[0] // patch_size[0], img_size[1] // patch_size[1]]
         self.img_size = img_size
         self.patch_size = patch_size
@@ -438,24 +436,20 @@ class PatchEmbed(nn.Module):
         self.in_chans = in_chans
         self.embed_dim = embed_dim
 
-
         self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=patch_size)
         if norm_layer is not None:
-            self.norm = norm_layer(embed_dim) 
+            self.norm = norm_layer(embed_dim)
         else:
             self.norm = None
 
     def forward(self, x):
         B, C, H, W = x.shape
-        
         # FIXME look at relaxing size constraints
         assert H == self.img_size[0] and W == self.img_size[1], \
             f"Input image size ({H}*{W}) doesn't match model ({self.img_size[0]}*{self.img_size[1]})."
         x = self.proj(x).flatten(2).transpose(1, 2)  # B Ph*Pw C
-        
         if self.norm is not None:
             x = self.norm(x)
-        
         return x
 
     def flops(self):
@@ -545,6 +539,9 @@ class SwinTransformer(nn.Module):
             self.layers.append(layer)
 
         self.norm = norm_layer(self.num_features)
+        self.avgpool = nn.AdaptiveAvgPool1d(1)
+        self.head = nn.Linear(self.num_features, num_classes) if num_classes > 0 else nn.Identity()
+
         self.apply(self._init_weights)
 
     def _init_weights(self, m):
@@ -567,23 +564,24 @@ class SwinTransformer(nn.Module):
     def forward(self, x):
         out_featList = []
         x = self.patch_embed(x)
-
         if self.ape:
             x = x + self.absolute_pos_embed
         x = self.pos_drop(x)
-        
+
+        # for layer in self.layers:
+        #     x = layer(x)
+
+
         for idx, layer in enumerate(self.layers):
             feature_pyramid, x = layer(x)
             B, HW, C = feature_pyramid.shape
 
-            new_H = int(224/ (4*(pow(2, idx))))
-            new_W = int(896/ (4*(pow(2, idx))))
+            new_H = int(math.sqrt(HW))
+            new_W = int(math.sqrt(HW))
 
             feature_pyramid = feature_pyramid.transpose(1, 2).reshape((B, C, new_H, new_W))
             out_featList.append(feature_pyramid)
-
         return out_featList
-
 
     def flops(self):
         flops = 0

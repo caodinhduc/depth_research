@@ -46,6 +46,9 @@ _C.MODEL = CN()
 _C.MODEL.TYPE = 'swin'
 # Model name
 _C.MODEL.NAME = 'swin_tiny_patch4_window7_224'
+# Pretrained weight from checkpoint, could be imagenet22k pretrained weight
+# could be overwritten by command line argument
+_C.MODEL.PRETRAINED = ''
 # Checkpoint to resume, could be overwritten by command line argument
 _C.MODEL.RESUME = ''
 # Number of classes, overwritten in data preparation
@@ -67,7 +70,7 @@ _C.MODEL.SWIN.NUM_HEADS = [3, 6, 12, 24]
 _C.MODEL.SWIN.WINDOW_SIZE = 7
 _C.MODEL.SWIN.MLP_RATIO = 4.
 _C.MODEL.SWIN.QKV_BIAS = True
-_C.MODEL.SWIN.QK_SCALE = True
+_C.MODEL.SWIN.QK_SCALE = False
 _C.MODEL.SWIN.APE = False
 _C.MODEL.SWIN.PATCH_NORM = True
 
@@ -142,7 +145,7 @@ _C.AUG.MIXUP = 0.8
 # Cutmix alpha, cutmix enabled if > 0
 _C.AUG.CUTMIX = 1.0
 # Cutmix min/max ratio, overrides alpha and enables cutmix if set
-_C.AUG.CUTMIX_MINMAX = True
+_C.AUG.CUTMIX_MINMAX = False
 # Probability of performing mixup or cutmix when either/both is enabled
 _C.AUG.MIXUP_PROB = 1.0
 # Probability of switching to cutmix when both mixup and cutmix enabled
@@ -156,6 +159,8 @@ _C.AUG.MIXUP_MODE = 'batch'
 _C.TEST = CN()
 # Whether to use center crop when testing
 _C.TEST.CROP = True
+# Whether to use SequentialSampler as validation sampler
+_C.TEST.SEQUENTIAL = False
 
 # -----------------------------------------------------------------------------
 # Misc
@@ -196,20 +201,55 @@ def _update_config_from_file(config, cfg_file):
     config.freeze()
 
 
-def update_config(config):
-    _update_config_from_file(config, 'swin_transformer/configs/swin_base_patch4_window7_224.yaml')
+def update_config(config, args):
+    _update_config_from_file(config, args.cfg)
+
     config.defrost()
+    if args.opts:
+        config.merge_from_list(args.opts)
+
+    # merge from specific arguments
+    if args.batch_size:
+        config.DATA.BATCH_SIZE = args.batch_size
+    if args.data_path:
+        config.DATA.DATA_PATH = args.data_path
+    if args.zip:
+        config.DATA.ZIP_MODE = True
+    if args.cache_mode:
+        config.DATA.CACHE_MODE = args.cache_mode
+    if args.pretrained:
+        config.MODEL.PRETRAINED = args.pretrained
+    if args.resume:
+        config.MODEL.RESUME = args.resume
+    if args.accumulation_steps:
+        config.TRAIN.ACCUMULATION_STEPS = args.accumulation_steps
+    if args.use_checkpoint:
+        config.TRAIN.USE_CHECKPOINT = True
+    if args.amp_opt_level:
+        config.AMP_OPT_LEVEL = args.amp_opt_level
+    if args.output:
+        config.OUTPUT = args.output
+    if args.tag:
+        config.TAG = args.tag
+    if args.eval:
+        config.EVAL_MODE = True
+    if args.throughput:
+        config.THROUGHPUT_MODE = True
+
+    # set local rank for distributed training
+    config.LOCAL_RANK = args.local_rank
+
     # output folder
     config.OUTPUT = os.path.join(config.OUTPUT, config.MODEL.NAME, config.TAG)
 
     config.freeze()
 
 
-def get_config():
+def get_config(args):
     """Get a yacs CfgNode object with default values."""
     # Return a clone so that the defaults will not be altered
     # This is for the "local variable" use pattern
     config = _C.clone()
-    update_config(config)
+    update_config(config, args)
 
     return config

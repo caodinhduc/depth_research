@@ -340,6 +340,8 @@ class deepFeatureExtractor_MobileNetV2(nn.Module):
                 module.weight.requires_grad = enable
                 module.bias.requires_grad = enable
 
+from utils import load_pretrained
+from logger import create_logger
 class deepFeatureExtractor_swin_transformer(nn.Module):
     def __init__(self,args, lv6 = False):
         super(deepFeatureExtractor_swin_transformer, self).__init__()
@@ -349,9 +351,54 @@ class deepFeatureExtractor_swin_transformer(nn.Module):
         # after passing Layer3 : 4C x H/16 x W/16
         # after passing Layer4 : 8C x H/32 x W/32
 
-        config = get_config()
+        _, config = self.parse_option()
+        # print(config)
+        logger = create_logger(output_dir='', name=f"{config.MODEL.NAME}")
         self.encoder = build_model(config)
+        load_pretrained(config, self.encoder, logger)
+
         self.dimList = [128, 256, 512, 1024]
+
+    def parse_option(self):
+        parser = argparse.ArgumentParser('Swin Transformer training and evaluation script', add_help=False)
+        parser.add_argument('--cfg', type=str, metavar="FILE", help='path to config file', default='swin_transformer/configs/swin_base_patch4_window7_224.yaml')
+        parser.add_argument(
+            "--opts",
+            help="Modify config options by adding 'KEY VALUE' pairs. ",
+            default=None,
+            nargs='+',
+        )
+
+        # easy config modification
+        parser.add_argument('--batch-size', type=int, help="batch size for single GPU")
+        parser.add_argument('--data-path', type=str, help='path to dataset')
+        parser.add_argument('--zip', action='store_true', help='use zipped dataset instead of folder dataset')
+        parser.add_argument('--cache-mode', type=str, default='part', choices=['no', 'full', 'part'],
+                            help='no: no cache, '
+                                'full: cache all data, '
+                                'part: sharding the dataset into nonoverlapping pieces and only cache one piece')
+        parser.add_argument('--pretrained', default='swin_base_patch4_window7_224.pth',
+                            help='pretrained weight from checkpoint, could be imagenet22k pretrained weight')
+        parser.add_argument('--resume', help='resume from checkpoint')
+        parser.add_argument('--accumulation-steps', type=int, help="gradient accumulation steps")
+        parser.add_argument('--use-checkpoint', action='store_true',
+                            help="whether to use gradient checkpointing to save memory")
+        parser.add_argument('--amp-opt-level', type=str, default='O1', choices=['O0', 'O1', 'O2'],
+                            help='mixed precision opt level, if O0, no amp is used')
+        parser.add_argument('--output', default='output', type=str, metavar='PATH',
+                            help='root of output folder, the full path is <output>/<model_name>/<tag> (default: output)')
+        parser.add_argument('--tag', help='tag of experiment')
+        parser.add_argument('--eval', action='store_true', help='Perform evaluation only')
+        parser.add_argument('--throughput', action='store_true', help='Test throughput only')
+
+        # distributed training
+        parser.add_argument("--local_rank", type=int, default=0, help='local rank for DistributedDataParallel')
+
+        args, unparsed = parser.parse_known_args()
+
+        config = get_config(args)
+
+        return args, config
 
     def forward(self, x):
         return(self.encoder(x))

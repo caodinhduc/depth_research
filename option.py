@@ -42,7 +42,7 @@ parser.add_argument('--img_save', action='store_true', help='result image save')
 parser.add_argument('--cap', default=80.0, type=float, metavar='MaxVal', help='cap setting for kitti eval')
 parser.add_argument('--max_depth', default=80.0, type=float, metavar='MaxVal', help='max value of depth')
 parser.add_argument('--height', type=int, default = 224)
-parser.add_argument('--width', type=int, default = 896)
+parser.add_argument('--width', type=int, default = 224)
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true', help='evaluate model on validation set')
 parser.add_argument('--lv6', action='store_true', help='use lv6 Laplacian decoder')
 
