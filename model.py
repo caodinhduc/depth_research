@@ -645,12 +645,15 @@ class Lap_decoder_lv5(nn.Module):
         
         self.decoder2_2 = myConv(dimList[3]//4, dimList[3]//8, kSize, stride=1, padding=kSize//2, bias=False, 
                                         norm=norm, act=act, num_groups=(dimList[3]//4)//16)
-        self.decoder2_3 = nn.Sequential(myConv(dimList[3]//8, dimList[3]//16, kSize, stride=1, padding=kSize//2, bias=False, 
-                                            norm=norm, act=act, num_groups=(dimList[3]//8)//16), 
-                                        myConv(dimList[3]//16, dimList[3]//32, kSize, stride=1, padding=kSize//2, bias=False, 
-                                            norm=norm, act=act, num_groups=(dimList[3]//16)//16),
-                                        myConv(dimList[3]//32, dimList[3]//64, kSize, stride=1, padding=kSize//2, bias=False, 
-                                            norm=norm, act=act, num_groups=(dimList[3]//32)//16)
+        # self.decoder2_3 = nn.Sequential(myConv(dimList[3]//8, dimList[3]//16, kSize, stride=1, padding=kSize//2, bias=False, 
+        #                                     norm=norm, act=act, num_groups=(dimList[3]//8)//16), 
+        #                                 myConv(dimList[3]//16, dimList[3]//32, kSize, stride=1, padding=kSize//2, bias=False, 
+        #                                     norm=norm, act=act, num_groups=(dimList[3]//16)//16),
+        #                                 myConv(dimList[3]//32, dimList[3]//64, kSize, stride=1, padding=kSize//2, bias=False, 
+        #                                     norm=norm, act=act, num_groups=(dimList[3]//32)//16)
+        #                                 )
+        self.decoder2_3 = nn.Sequential(myConv(dimList[3]//8, dimList[3]//64, kSize, stride=1, padding=kSize//2, bias=False, 
+                                            norm=norm, act=act, num_groups=(dimList[3]//8)//16)
                                         )
         
         # self.decoder2_4 = myConv(dimList[3]//16, 1, kSize, stride=1, padding=kSize//2, bias=False, 
@@ -669,12 +672,16 @@ class Lap_decoder_lv5(nn.Module):
         self.decoder2_1_2 = myConv(dimList[3]//8, dimList[3]//16, kSize, stride=1, padding=kSize//2, bias=False, 
                                         norm=norm, act=act, num_groups=(dimList[3]//8)//16)
         
-        self.decoder2_1_3 = nn.Sequential(myConv(dimList[3]//16, dimList[3]//32, kSize, stride=1, padding=kSize//2, bias=False, 
-                                            norm=norm, act=act, num_groups=(dimList[3]//16)//16),
-                                        myConv(dimList[3]//32, dimList[3]//64, kSize, stride=1, padding=kSize//2, bias=False, 
-                                            norm=norm, act=act, num_groups=(dimList[3]//32)//16),
-                                        myConv(dimList[3]//64, dimList[3]//128, kSize, stride=1, padding=kSize//2, bias=False, 
-                                            norm=norm, act=act, num_groups=(dimList[3]//64)//16)
+        # self.decoder2_1_3 = nn.Sequential(myConv(dimList[3]//16, dimList[3]//32, kSize, stride=1, padding=kSize//2, bias=False, 
+        #                                     norm=norm, act=act, num_groups=(dimList[3]//16)//16),
+        #                                 myConv(dimList[3]//32, dimList[3]//64, kSize, stride=1, padding=kSize//2, bias=False, 
+        #                                     norm=norm, act=act, num_groups=(dimList[3]//32)//16),
+        #                                 myConv(dimList[3]//64, dimList[3]//128, kSize, stride=1, padding=kSize//2, bias=False, 
+        #                                     norm=norm, act=act, num_groups=(dimList[3]//64)//16)
+        #                                 )
+
+        self.decoder2_1_3 = nn.Sequential(myConv(dimList[3]//16, dimList[3]//128, kSize, stride=1, padding=kSize//2, bias=False, 
+                                            norm=norm, act=act, num_groups=(dimList[3]//128)//16)
                                         )
         ########################################################################################################################
 
@@ -687,14 +694,18 @@ class Lap_decoder_lv5(nn.Module):
         self.decoder2_1_1_1 = myConv(dimList[3]//16, dimList[3]//16, kSize, stride=1, padding=kSize//2, bias=False, 
                                         norm=norm, act=act, num_groups=(dimList[3]//16)//16)
         
-        self.decoder2_1_1_2 = nn.Sequential(myConv(dimList[3]//16, dimList[3]//32, kSize, stride=1, padding=kSize//2, bias=False, 
-                                            norm=norm, act=act, num_groups=(dimList[3]//16)//16),
-                                        myConv(dimList[3]//32, dimList[3]//64, kSize, stride=1, padding=kSize//2, bias=False, 
-                                            norm=norm, act=act, num_groups=(dimList[3]//32)//16),
-                                        myConv(dimList[3]//64, dimList[3]//128, kSize, stride=1, padding=kSize//2, bias=False, 
-                                            norm=norm, act=act, num_groups=(dimList[3]//64)//16),
-                                        myConv(dimList[3]//128, dimList[3]//256, kSize, stride=1, padding=kSize//2, bias=False, 
-                                            norm=norm, act=act, num_groups=(dimList[3]//128)//16)
+        # self.decoder2_1_1_2 = nn.Sequential(myConv(dimList[3]//16, dimList[3]//32, kSize, stride=1, padding=kSize//2, bias=False, 
+        #                                     norm=norm, act=act, num_groups=(dimList[3]//16)//16),
+        #                                 myConv(dimList[3]//32, dimList[3]//64, kSize, stride=1, padding=kSize//2, bias=False, 
+        #                                     norm=norm, act=act, num_groups=(dimList[3]//32)//16),
+        #                                 myConv(dimList[3]//64, dimList[3]//128, kSize, stride=1, padding=kSize//2, bias=False, 
+        #                                     norm=norm, act=act, num_groups=(dimList[3]//64)//16),
+        #                                 myConv(dimList[3]//128, dimList[3]//256, kSize, stride=1, padding=kSize//2, bias=False, 
+        #                                     norm=norm, act=act, num_groups=(dimList[3]//128)//16)
+        #                                 )
+
+        self.decoder2_1_1_2 = nn.Sequential(myConv(dimList[3]//16, dimList[3]//256, kSize, stride=1, padding=kSize//2, bias=False, 
+                                            norm=norm, act=act, num_groups=(dimList[3]//16)//16)
                                         )
         ########################################################################################################################
         
@@ -707,14 +718,17 @@ class Lap_decoder_lv5(nn.Module):
         
         self.decoder2_1_1_1_2 = myConv(dimList[3]//16, dimList[3]//32, kSize, stride=1, padding=kSize//2, bias=False, 
                                         norm=norm, act=act, num_groups=(dimList[3]//16)//16)
-        self.decoder2_1_1_1_3 = nn.Sequential(myConv(dimList[3]//32, dimList[3]//64, kSize, stride=1, padding=kSize//2, bias=False, 
-                                            norm=norm, act=act, num_groups=(dimList[3]//32)//16),
-                                        myConv(dimList[3]//64, dimList[3]//128, kSize, stride=1, padding=kSize//2, bias=False, 
-                                            norm=norm, act=act, num_groups=(dimList[3]//64)//16),
-                                        myConv(dimList[3]//128, dimList[3]//256, kSize, stride=1, padding=kSize//2, bias=False, 
-                                            norm=norm, act=act, num_groups=(dimList[3]//128)//16),
-                                        myConv(dimList[3]//256, 1, kSize, stride=1, padding=kSize//2, bias=False, 
-                                            norm=norm, act=act, num_groups=(dimList[3]//256)//16) 
+        # self.decoder2_1_1_1_3 = nn.Sequential(myConv(dimList[3]//32, dimList[3]//64, kSize, stride=1, padding=kSize//2, bias=False, 
+        #                                     norm=norm, act=act, num_groups=(dimList[3]//32)//16),
+        #                                 myConv(dimList[3]//64, dimList[3]//128, kSize, stride=1, padding=kSize//2, bias=False, 
+        #                                     norm=norm, act=act, num_groups=(dimList[3]//64)//16),
+        #                                 myConv(dimList[3]//128, dimList[3]//256, kSize, stride=1, padding=kSize//2, bias=False, 
+        #                                     norm=norm, act=act, num_groups=(dimList[3]//128)//16),
+        #                                 myConv(dimList[3]//256, 1, kSize, stride=1, padding=kSize//2, bias=False, 
+        #                                     norm=norm, act=act, num_groups=(dimList[3]//256)//16) 
+        #                                 )
+        self.decoder2_1_1_1_3 = nn.Sequential(myConv(dimList[3]//32, 1, kSize, stride=1, padding=kSize//2, bias=False, 
+                                            norm=norm, act=act, num_groups=(dimList[3]//32)//16) 
                                         )
         ########################################################################################################################
         self.upscale = F.interpolate
@@ -790,6 +804,11 @@ class Lap_decoder_lv5(nn.Module):
         lpg_4_feature = self.lpg_4(lpg_lv4)
         lpg_3_feature = self.lpg_3(lpg_lv3)
         lpg_2_feature = self.lpg_2(lpg_lv2)
+
+        print(torch.mean(lpg_lv5))
+        print(torch.mean(lpg_lv4))
+        print(torch.mean(lpg_lv3))
+        print(torch.mean(lpg_lv2))
 
         feature = torch.cat([torch.unsqueeze(lpg_5_feature, 1), torch.unsqueeze(lpg_4_feature, 1), torch.unsqueeze(lpg_3_feature, 1), torch.unsqueeze(lpg_2_feature, 1), lpg_lv1], dim=1)
         final_prediction = torch.sigmoid(self.final_conv(feature))
@@ -993,6 +1012,7 @@ class LDRN(nn.Module):
             self.decoder = Lap_decoder_lv5(args, self.encoder.dimList)
     def forward(self, x):
         out_featList = self.encoder(x)
+        # print(out_featList)
 
         rgb_down2 = F.interpolate(x, scale_factor = 0.5, mode='bilinear')
         rgb_down4 = F.interpolate(rgb_down2, scale_factor = 0.5, mode='bilinear')
@@ -1012,6 +1032,7 @@ class LDRN(nn.Module):
         rgb_list = [rgb_down32, lap5, lap4, lap3, lap2, lap1]
 
         depth = self.decoder(out_featList, rgb_list)
+        print(depth)
         return depth    
 
     def train(self, mode=True):
