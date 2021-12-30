@@ -191,11 +191,11 @@ def train_net(args,model, optimizer, dataset_loader,val_loader, n_epochs,logger)
             
             '''Network loss'''
             # Feed-forward pass
-            outputs = model(inputs)
-            # if args.lv6 is True:
-            #     [lap6_pred, lap5_pred, lap4_pred, lap3_pred, lap2_pred, lap1_pred] = d_res_list
-            # else:
-            #     [lap5_pred, lap4_pred, lap3_pred, lap2_pred, lap1_pred] = d_res_list
+            d_res_list, outputs = model(inputs)
+            if args.lv6 is True:
+                [lap6_pred, lap5_pred, lap4_pred, lap3_pred, lap2_pred, lap1_pred] = d_res_list
+            else:
+                [lap5_pred, lap4_pred, lap3_pred, lap2_pred, lap1_pred] = d_res_list
             ##################################### Valid mask definition ####################################
             # masking valied area
             valid_mask, final_mask = make_mask(depths, crop_mask, args.dataset)
