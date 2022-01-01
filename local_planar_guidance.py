@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 MAX_DEPTH = 81
-MAX_DEPTH = 81
 DEPTH_OFFSET = 0.1 # This is used for ensuring depth prediction gets into positive range
 
 USE_APEX = False  # Enable if you have GPU with Tensor Cores, otherwise doesnt really bring any benefits.
