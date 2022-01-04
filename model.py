@@ -571,6 +571,7 @@ class Dilated_bottleNeck_lv6(nn.Module):
 
 
 from local_planar_guidance import LPGBlock
+from attention import CBAM
 # Laplacian Decoder Network
 class Lap_decoder_lv5(nn.Module):
     def __init__(self, args, dimList):
@@ -622,7 +623,7 @@ class Lap_decoder_lv5(nn.Module):
         # decoder2 out : 1 x H/8 x W/8 (Level 4)
         # decoder2_up : (H/16,W/16)->(H/8,W/8)
         self.decoder2_up1 = upConvLayer(dimList[3]//2, dimList[3]//4, 2, norm, act, (dimList[3]//2)//16)
-        self.decoder2_reduc1 = myConv(dimList[3]//4 + dimList[2], dimList[3]//4 - 3, kSize=1, stride=1, padding=0,bias=False, 
+        self.decoder2_reduc1 = myConv(dimList[3]//4 + dimList[2], dimList[3]//4 - 1, kSize=1, stride=1, padding=0,bias=False, 
                                         norm=norm, act=act, num_groups = (dimList[3]//4 + dimList[2])//16)
         self.decoder2_1 = myConv(dimList[3]//4, dimList[3]//4, kSize, stride=1, padding=kSize//2, bias=False, 
                                         norm=norm, act=act, num_groups=(dimList[3]//4)//16)
@@ -636,19 +637,14 @@ class Lap_decoder_lv5(nn.Module):
                                         myConv(dimList[3]//128, dimList[3]//256, kSize, stride=1, padding=kSize//2, bias=False, 
                                             norm=norm, act=act, num_groups=(dimList[3]//128)//16)
                                         )
-        # self.decoder2_3 = nn.Sequential(myConv(dimList[3]//8, dimList[3]//64, kSize, stride=1, padding=kSize//2, bias=False, 
-        #                                     norm=norm, act=act, num_groups=(dimList[3]//8)//16)
-        #                                 )
-        
-        # self.decoder2_4 = myConv(dimList[3]//16, 1, kSize, stride=1, padding=kSize//2, bias=False, 
-        #                                 norm=norm, act=act, num_groups=(dimList[3]//16)//16)
+
         ########################################################################################################################
 
         ############################################     Pyramid Level 3     ###################################################
         # decoder2 out2 : 1 x H/4 x W/4 (Level 3)
         # decoder2_1_up2 : (H/8,W/8)->(H/4,W/4)
         self.decoder2_1_up2 = upConvLayer(dimList[3]//4, dimList[3]//8, 2, norm, act, (dimList[3]//4)//16)
-        self.decoder2_1_reduc2 = myConv(dimList[3]//8 + dimList[1], dimList[3]//8 - 3, kSize=1, stride=1, padding=0,bias=False, 
+        self.decoder2_1_reduc2 = myConv(dimList[3]//8 + dimList[1], dimList[3]//8 - 1, kSize=1, stride=1, padding=0,bias=False, 
                                         norm=norm, act=act, num_groups = (dimList[3]//8 + dimList[1])//16)
         self.decoder2_1_1 = myConv(dimList[3]//8, dimList[3]//8, kSize, stride=1, padding=kSize//2, bias=False, 
                                         norm=norm, act=act, num_groups=(dimList[3]//8)//16)
@@ -664,8 +660,6 @@ class Lap_decoder_lv5(nn.Module):
                                             norm=norm, act=act, num_groups=(dimList[3]//256)//16)
                                         )
 
-        # self.decoder2_1_4 = nn.Sequential(myConv(dimList[3]//16, dimList[3]//128, kSize, stride=1, padding=kSize//2, bias=False, 
-        #                                     norm=norm, act=act, num_groups=(dimList[3]//128)//16)
         #                                 )
         ########################################################################################################################
 
@@ -673,7 +667,7 @@ class Lap_decoder_lv5(nn.Module):
         # decoder2 out3 : 1 x H/2 x W/2 (Level 2)
         # decoder2_1_1_up3 : (H/4,W/4)->(H/2,W/2)
         self.decoder2_1_1_up3 = upConvLayer(dimList[3]//8, dimList[3]//16, 2, norm, act, (dimList[3]//8)//16)
-        self.decoder2_1_1_reduc3 = myConv(dimList[3]//16 + dimList[0], dimList[3]//16 - 3, kSize=1, stride=1, padding=0,bias=False, 
+        self.decoder2_1_1_reduc3 = myConv(dimList[3]//16 + dimList[0], dimList[3]//16 - 1, kSize=1, stride=1, padding=0,bias=False, 
                                         norm=norm, act=act, num_groups = (dimList[3]//16 + dimList[0])//16)
         self.decoder2_1_1_1 = myConv(dimList[3]//16, dimList[3]//16, kSize, stride=1, padding=kSize//2, bias=False, 
                                         norm=norm, act=act, num_groups=(dimList[3]//16)//16)
@@ -688,15 +682,13 @@ class Lap_decoder_lv5(nn.Module):
                                             norm=norm, act=act, num_groups=(dimList[3]//128)//16)
                                         )
 
-        # self.decoder2_1_1_2 = nn.Sequential(myConv(dimList[3]//16, dimList[3]//256, kSize, stride=1, padding=kSize//2, bias=False, 
-        #                                     norm=norm, act=act, num_groups=(dimList[3]//16)//16)
-        #                                 )
+ 
         ########################################################################################################################
         
         ############################################     Pyramid Level 1     ###################################################
         # decoder5 out : 1 x H x W (Level 1)
         # decoder2_1_1_1_up4 : (H/2,W/2)->(H,W)
-        self.decoder2_1_1_1_up4 = upConvLayer(dimList[3]//16, dimList[3]//16 - 3, 2, norm, act, (dimList[3]//16)//16)
+        self.decoder2_1_1_1_up4 = upConvLayer(dimList[3]//16, dimList[3]//16 - 1, 2, norm, act, (dimList[3]//16)//16)
         self.decoder2_1_1_1_1 = myConv(dimList[3]//16, dimList[3]//16, kSize, stride=1, padding=kSize//2, bias=False, 
                                         norm=norm, act=act, num_groups=(dimList[3]//16)//16)
         
@@ -709,11 +701,10 @@ class Lap_decoder_lv5(nn.Module):
                                         myConv(dimList[3]//128, dimList[3]//256, kSize, stride=1, padding=kSize//2, bias=False, 
                                             norm=norm, act=act, num_groups=(dimList[3]//128)//16)
                                         )
-        # self.decoder2_1_1_1_3 = nn.Sequential(myConv(dimList[3]//32, 1, kSize, stride=1, padding=kSize//2, bias=False, 
-        #                                     norm=norm, act=act, num_groups=(dimList[3]//32)//16) 
-        #                                 )
+
         ########################################################################################################################
         self.upscale = F.interpolate
+        self.cbam = CBAM(5, 5)
 
         ########################################################################################################################
         
@@ -726,61 +717,57 @@ class Lap_decoder_lv5(nn.Module):
         rgb_lv6, rgb_lv5, rgb_lv4, rgb_lv3, rgb_lv2, rgb_lv1 = rgb[0], rgb[1], rgb[2], rgb[3], rgb[4], rgb[5]
         dense_feat = self.ASPP(dense_feat)                        # Dense feature for lev 5
         # decoder 1 - Pyramid level 5
-        # lap_lv5 = torch.sigmoid(self.decoder1(dense_feat))
-        # lap_lv5_up = self.upscale(lap_lv5, scale_factor = 2, mode='bilinear')
 
         lpg_lv5 = self.decoder1(dense_feat)
+        lpg_5_feature = (self.lpg_5(lpg_lv5) / 715.0873).sigmoid()
+        dow_lpg_5_feature = F.interpolate(lpg_5_feature, scale_factor = 0.125, mode='bilinear')
 
         # decoder 2 - Pyramid level 4
         dec2 = self.decoder2_up1(dense_feat)
         dec2 = self.decoder2_reduc1(torch.cat([dec2,cat3],dim=1))
-        dec2_up = self.decoder2_1(torch.cat([dec2,rgb_lv4],dim=1))
+        dec2_up = self.decoder2_1(torch.cat([dec2, dow_lpg_5_feature],dim=1))
         dec2 = self.decoder2_2(dec2_up)
 
         lpg_lv4 = self.decoder2_3(dec2)
-        # lap_lv4 = torch.tanh(self.decoder2_4(dec2) + (0.1*rgb_lv4.mean(dim=1,keepdim=True)))                 
+        lpg_4_feature = (self.lpg_4(lpg_lv4) / 715.0873).sigmoid()
+        dow_lpg_4_feature = F.interpolate(lpg_4_feature, scale_factor = 0.25, mode='bilinear')                
         # if depth range is (0,1), laplacian of image range is (-1,1)
-        # lap_lv4_up = self.upscale(lap_lv4, scale_factor = 2, mode='bilinear')
 
         # decoder 2 - Pyramid level 3
         dec3 = self.decoder2_1_up2(dec2_up)
         dec3 = self.decoder2_1_reduc2(torch.cat([dec3,cat2],dim=1))
-        dec3_up = self.decoder2_1_1(torch.cat([dec3,rgb_lv3],dim=1))
+        dec3_up = self.decoder2_1_1(torch.cat([dec3, dow_lpg_4_feature],dim=1))
         dec3 = self.decoder2_1_2(dec3_up)
 
         lpg_lv3 = self.decoder2_1_3(dec3)
-        
-        # lap_lv3 = torch.tanh(self.decoder2_1_3(dec3) + (0.1*rgb_lv3.mean(dim=1,keepdim=True)))                 
+        lpg_3_feature = (self.lpg_3(lpg_lv3) / 715.0873).sigmoid()
+        dow_lpg_3_feature = F.interpolate(lpg_3_feature, scale_factor = 0.5, mode='bilinear')               
         # if depth range is (0,1), laplacian of image range is (-1,1)
-        # lap_lv3_up = self.upscale(lap_lv3, scale_factor = 2, mode='bilinear')
 
 
         # decoder 2 - Pyramid level 2
         dec4 = self.decoder2_1_1_up3(dec3_up)
         dec4 = self.decoder2_1_1_reduc3(torch.cat([dec4,cat1],dim=1))
-        dec4_up = self.decoder2_1_1_1(torch.cat([dec4,rgb_lv2],dim=1))
+        dec4_up = self.decoder2_1_1_1(torch.cat([dec4, dow_lpg_3_feature],dim=1))
 
         lpg_lv2 = self.decoder2_1_1_2(dec4_up)
-
-        # lap_lv2 = torch.tanh(self.decoder2_1_1_2(dec4_up) + (0.1*rgb_lv2.mean(dim=1,keepdim=True)))                  
+        lpg_2_feature = (self.lpg_2(lpg_lv2) / 715.0873).sigmoid()
+           
         # if depth range is (0,1), laplacian of image range is (-1,1)
-        # lap_lv2_up = self.upscale(lap_lv2, scale_factor = 2, mode='bilinear')
 
         # decoder 2 - Pyramid level 1
         dec5 = self.decoder2_1_1_1_up4(dec4_up)
-        dec5 = self.decoder2_1_1_1_1(torch.cat([dec5,rgb_lv1],dim=1))
+        dec5 = self.decoder2_1_1_1_1(torch.cat([dec5, lpg_2_feature],dim=1))
         dec5 = self.decoder2_1_1_1_2(dec5)
 
         lpg_lv1 = self.decoder2_1_1_1_3(dec5)
-
-        # if depth range is (0,1), laplacian of image range is (-1,1)
-        lpg_5_feature = (self.lpg_5(lpg_lv5) / 715.0873).sigmoid()
-        lpg_4_feature = (self.lpg_4(lpg_lv4) / 715.0873).sigmoid()
-        lpg_3_feature = (self.lpg_3(lpg_lv3) / 715.0873).sigmoid()
-        lpg_2_feature = (self.lpg_2(lpg_lv2) / 715.0873).sigmoid()
         lpg_1_feature = (self.lpg_1(lpg_lv1) / 715.0873).sigmoid()
 
+        # if depth range is (0,1), laplacian of image range is (-1,1)
+        
+
         feature = torch.cat([lpg_5_feature, lpg_4_feature, lpg_3_feature, lpg_2_feature, lpg_1_feature], dim=1)
+        feature = self.cbam(feature)
         depth = self.final_conv(feature).sigmoid() * MAX_DEPTH + DEPTH_OFFSET
 
         return [lpg_lv1, lpg_lv1, lpg_lv1, lpg_lv1, lpg_lv1], depth
